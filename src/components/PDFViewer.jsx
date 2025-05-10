@@ -36,7 +36,6 @@ const PDFViewer = ({ currentSidebar }) => {
 	const containerRef = useRef(null);
 	const textareaRef = useRef(null);
 
-	// LocalStorage'dan notları yükle
 	useEffect(() => {
 		const savedData = localStorage.getItem(NOTES_STORAGE_KEY);
 		if (savedData) {
@@ -107,7 +106,6 @@ const PDFViewer = ({ currentSidebar }) => {
 		setPdf(pdfDoc);
 	};
 
-	// PDF dosyasını yükleme fonksiyonu
 	const onFileChange = (event) => {
 		const file = event.target.files[0];
 		if (file) {
@@ -160,7 +158,6 @@ const PDFViewer = ({ currentSidebar }) => {
 			let updatedNotes;
 
 			if (existingNoteObj) {
-				// Update the existing one
 				updatedNotes = prevNotes.map((noteObj) => {
 					if (noteObj.id !== pdfId) return noteObj;
 
