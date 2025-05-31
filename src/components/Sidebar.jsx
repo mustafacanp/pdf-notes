@@ -4,7 +4,7 @@ const updateHash = (highlight) => {
 	document.location.hash = `highlight-${highlight.id}`;
 };
 
-export function Sidebar({ highlights, toggleDocument, resetHighlights }) {
+export function Sidebar({ highlights, resetHighlights }) {
 	return (
 		<div className="sidebar" style={{ width: "25vw" }}>
 			<div className="description" style={{ padding: "1rem" }}>
@@ -45,14 +45,13 @@ export function Sidebar({ highlights, toggleDocument, resetHighlights }) {
 					</li>
 				))}
 			</ul>
-			<div style={{ padding: "1rem" }}>
-				<button type="button" onClick={toggleDocument}>
-					Toggle PDF document
-				</button>
-			</div>
 			{highlights.length > 0 ? (
-				<div style={{ padding: "1rem" }}>
-					<button type="button" onClick={resetHighlights}>
+				<div className="flex justify-end p-4">
+					<button
+						type="button"
+						className="cursor-pointer bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+						onClick={resetHighlights}
+					>
 						Reset highlights
 					</button>
 				</div>

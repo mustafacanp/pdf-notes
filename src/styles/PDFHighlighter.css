@@ -62,3 +62,10 @@ blockquote:before {
 blockquote:after {
 	content: close-quote;
 }
+
+.Highlight__popup {
+	padding: 10px;
+	border-radius: 5px;
+	text-align: center;
+	overflow-y: hidden;
+}
