@@ -4,13 +4,24 @@ const updateHash = (highlight) => {
 	document.location.hash = `highlight-${highlight.id}`;
 };
 
+function isMac() {
+    // Modern approach (limited browser support)
+    if (navigator.userAgentData) {
+        return navigator.userAgentData.platform.toLowerCase().includes('mac');
+    }
+    
+    // Fallback to userAgent only
+    return /mac|iphone|ipad|ipod|ios/i.test(navigator.userAgent);
+}
+
 export function Sidebar({ highlights, resetHighlights }) {
+	const keyName = isMac() ? '⌥ Option' : 'Alt';
 	return (
 		<div className="sidebar" style={{ width: "25vw" }}>
 			<div className="description" style={{ padding: "1rem" }}>
-				<h2 style={{ marginBottom: "1rem" }}>Highlighter</h2>
+				<h2 className="text-lg font-bold-3">Notes</h2>
 				<p className="text-xs">
-					To create area highlight hold ⌥ Option key (Alt), then click and drag.
+					To create an area highlight: hold {keyName} key, then click and drag.
 				</p>
 			</div>
 

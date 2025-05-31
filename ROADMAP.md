@@ -6,7 +6,6 @@
 
 ## ⚡ Performance
 - [ ] Lazy load PDF pages (render only visible pages)
-- [ ] Enable react-pdf `cache` prop for page caching
 - [ ] Add file size validation/alert for large PDFs
 
 ## 📝 Note Management
@@ -22,7 +21,6 @@
 
 ## 🔒 Security
 - [ ] Sanitize user notes with DOMPurify
-- [ ] Enable react-pdf `sanitizeText` prop
 
 ## 🚨 Error Handling
 - [ ] Add invalid PDF upload error toast

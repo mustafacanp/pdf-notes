@@ -19,7 +19,7 @@ A web application for viewing PDFs, taking persistent notes linked to specific p
 ## Technologies
 
 - React.js + Vite
-- `react-pdf` (PDF rendering)
+- `react-pdf-highlighter` (PDF rendering/highlighting)
 - Browser localStorage (note persistence)
 
 ## Installation
