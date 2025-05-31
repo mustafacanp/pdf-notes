@@ -1,4 +1,5 @@
 import React from "react";
+import { X } from "lucide-react";
 
 const updateHash = (highlight) => {
 	document.location.hash = `highlight-${highlight.id}`;
@@ -14,14 +15,14 @@ function isMac() {
     return /mac|iphone|ipad|ipod|ios/i.test(navigator.userAgent);
 }
 
-export function Sidebar({ highlights, resetHighlights }) {
+export function Sidebar({ highlights, resetHighlights, onDeleteHighlight }) {
 	const keyName = isMac() ? '⌥ Option' : 'Alt';
 	return (
-		<div className="sidebar" style={{ width: "25vw" }}>
+		<div className="sidebar border-r border-gray-300" style={{ width: "30vw" }}>
 			<div className="description" style={{ padding: "1rem" }}>
-				<h2 className="text-lg font-bold-3">Notes</h2>
+				<h2 className="text-lg font-bold-3 mb-3">Notes</h2>
 				<p className="text-xs">
-					To create an area highlight: hold {keyName} key, then click and drag.
+					Hold <b>{keyName}</b> key + drag to highlight an area.
 				</p>
 			</div>
 
@@ -29,26 +30,41 @@ export function Sidebar({ highlights, resetHighlights }) {
 				{highlights.map((highlight, i) => (
 					<li
 						key={`highlight-${i + 1}`}
-						className="sidebar__highlight"
+						className="sidebar__highlight relative group"
 						onMouseDown={() => {
 							updateHash(highlight);
 						}}
 					>
-						<div>
-							<strong>{highlight.comment.text}</strong>
-							{highlight.content.text ? (
-								<blockquote style={{ marginTop: "0.5rem" }}>
-									{`${highlight.content.text.slice(0, 90).trim()}…`}
-								</blockquote>
-							) : null}
-							{highlight.content.image ? (
-								<div
-									className="highlight__image"
-									style={{ marginTop: "0.5rem" }}
+						<div className="flex justify-between items-start">
+							<div className="flex-1">
+								<strong>{highlight.comment.text}</strong>
+								{highlight.content.text ? (
+									<blockquote style={{ marginTop: "0.5rem" }}>
+										{`${highlight.content.text.slice(0, 90).trim()}…`}
+									</blockquote>
+								) : null}
+								{highlight.content.image ? (
+									<div
+										className="highlight__image"
+										style={{ marginTop: "0.5rem" }}
+									>
+										<img src={highlight.content.image} alt={"Screenshot"} />
+									</div>
+								) : null}
+							</div>
+							{onDeleteHighlight && (
+								<button
+									type="button"
+									onClick={(e) => {
+										e.stopPropagation();
+										onDeleteHighlight(highlight.id);
+									}}
+									className="cursor-pointer text-red-500 hover:text-red-700 ml-2 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+									title="Delete this highlight"
 								>
-									<img src={highlight.content.image} alt={"Screenshot"} />
-								</div>
-							) : null}
+									<X size={16} />
+								</button>
+							)}
 						</div>
 						<div className="highlight__location">
 							Page {highlight.position.pageNumber}

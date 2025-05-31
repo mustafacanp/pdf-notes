@@ -1,3 +1,1 @@
-export const NOTES_STORAGE_KEY = "pdfNotes";
-
-export const SIDEBAR_WIDTH = 150;
+export const HIGHLIGHTS_STORAGE_KEY = "pdfHighlights";

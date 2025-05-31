@@ -10,6 +10,7 @@ import {
 
 import { Sidebar } from "./Sidebar";
 import { Spinner } from "./Spinner";
+import { HIGHLIGHTS_STORAGE_KEY } from "../utils/constants";
 import "react-pdf-highlighter/dist/style.css";
 import "../styles/PDFHighlighter.css";
 
@@ -33,8 +34,46 @@ const PDFHighlighter = () => {
 	const [url, setUrl] = useState(null);
 	const [highlights, setHighlights] = useState([]);
 	const [pdfError, setPdfError] = useState(null);
+	const [pdfDocument, setPdfDocument] = useState(null);
+	const [fileName, setFileName] = useState(null);
 
 	const pdfHighlighterRef = useRef(null);
+
+	// Load highlights from localStorage on component mount
+	useEffect(() => {
+		const savedData = localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+		if (savedData) {
+			try {
+				JSON.parse(savedData);
+				// We'll load highlights for the current PDF when it's loaded
+			} catch (e) {
+				console.error("Error reading saved highlights data:", e);
+			}
+		}
+	}, []);
+
+	// Load highlights for current PDF when PDF document changes
+	useEffect(() => {
+		if (pdfDocument) {
+			const savedData = localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+			if (savedData) {
+				try {
+					const parsedData = JSON.parse(savedData);
+					const pdfId = pdfDocument.fingerprints[0];
+					const currentPdfHighlights = parsedData.find(item => item.id === pdfId);
+					if (currentPdfHighlights?.highlights?.length > 0) {     
+                        setTimeout(() => {
+                            // TODO: find a better way to do this, setTimeout is a hack to ensure the PDF highlighter is fully initialized
+                            setHighlights(currentPdfHighlights.highlights);
+                        }, 100);
+					}
+				} catch (e) {
+					console.error("Error loading highlights for current PDF:", e);
+					setHighlights([]);
+				}
+			}
+		}
+	}, [pdfDocument]);
 
 	const getHighlightById = useCallback((id) => {
 		return highlights.find((highlight) => highlight.id === id);
@@ -44,8 +83,10 @@ const PDFHighlighter = () => {
 		const hashId = parseIdFromHash();
 		const highlight = getHighlightById(hashId);
 		if (highlight && pdfHighlighterRef.current) {
-            console.log("highlight", highlight);
             pdfHighlighterRef.current.scrollTo(highlight);
+            setTimeout(() => {
+                // pdfHighlighterRef.current.viewer.container.scrollTop = pdfHighlighterRef.current.viewer.container.scrollTop - 300;
+            }, 100);
 		}
 	}, [getHighlightById]);
 
@@ -62,28 +103,81 @@ const PDFHighlighter = () => {
 
 	const resetHighlights = () => {
 		setHighlights([]);
+		// Also clear from localStorage for current PDF
+		if (pdfDocument) {
+			const savedData = localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+			if (savedData) {
+				try {
+					const parsedData = JSON.parse(savedData);
+					const pdfId = pdfDocument.fingerprints[0];
+					const updatedData = parsedData.filter(item => item.id !== pdfId);
+					localStorage.setItem(HIGHLIGHTS_STORAGE_KEY, JSON.stringify(updatedData));
+				} catch (e) {
+					console.error("Error clearing highlights from localStorage:", e);
+				}
+			}
+		}
 	};
 
 	const handleFileUpload = (event) => {
 		const file = event.target.files[0];
 		if (file && file.type === "application/pdf") {
 			const fileUrl = URL.createObjectURL(file);
-			setUrl(fileUrl);            
+			setUrl(fileUrl);
+			setFileName(file.name);
 			setHighlights([]);
 			setPdfError(null);
+			setPdfDocument(null);
 		}
 	};
 
+	const saveHighlightToStorage = (newHighlight) => {
+		if (!pdfDocument) return;
+
+		const savedData = localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+		let parsedData = [];
+		
+		if (savedData) {
+			try {
+				parsedData = JSON.parse(savedData);
+			} catch (e) {
+				console.error("Error parsing saved highlights data:", e);
+				parsedData = [];
+			}
+		}
+
+		const pdfId = pdfDocument.fingerprints[0];
+		const existingPdfIndex = parsedData.findIndex(item => item.id === pdfId);
+
+		if (existingPdfIndex >= 0) {
+			// Update existing PDF highlights
+			parsedData[existingPdfIndex].highlights.push(newHighlight);
+		} else {
+			// Create new PDF entry
+			parsedData.push({
+				id: pdfId,
+				fileName: fileName,
+				highlights: [newHighlight]
+			});
+		}
+
+		localStorage.setItem(HIGHLIGHTS_STORAGE_KEY, JSON.stringify(parsedData));
+	};
+
 	const addHighlight = (highlight) => {
+		const newHighlight = { ...highlight, id: getNextId() };
 		setHighlights((prevHighlights) => [
-			{ ...highlight, id: getNextId() },
+			newHighlight,
 			...prevHighlights,
 		]);
+		
+		// Save to localStorage
+		saveHighlightToStorage(newHighlight);
 	};
 
 	const updateHighlight = (highlightId, position, content) => {
-		setHighlights((prevHighlights) =>
-			prevHighlights.map((h) => {
+		setHighlights((prevHighlights) => {
+			const updatedHighlights = prevHighlights.map((h) => {
 				const {
 					id,
 					position: originalPosition,
@@ -98,8 +192,56 @@ const PDFHighlighter = () => {
 							...rest,
 						}
 					: h;
-			}),
-		);
+			});
+
+			// Save updated highlights to localStorage
+			if (pdfDocument) {
+				const savedData = localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+				if (savedData) {
+					try {
+						const parsedData = JSON.parse(savedData);
+						const pdfId = pdfDocument.fingerprints[0];
+						const existingPdfIndex = parsedData.findIndex(item => item.id === pdfId);
+						
+						if (existingPdfIndex >= 0) {
+							parsedData[existingPdfIndex].highlights = updatedHighlights;
+							localStorage.setItem(HIGHLIGHTS_STORAGE_KEY, JSON.stringify(parsedData));
+						}
+					} catch (e) {
+						console.error("Error updating highlights in localStorage:", e);
+					}
+				}
+			}
+
+			return updatedHighlights;
+		});
+	};
+
+	const deleteHighlight = (highlightId) => {
+		setHighlights((prevHighlights) => {
+			const updatedHighlights = prevHighlights.filter(h => h.id !== highlightId);
+
+			// Update localStorage
+			if (pdfDocument) {
+				const savedData = localStorage.getItem(HIGHLIGHTS_STORAGE_KEY);
+				if (savedData) {
+					try {
+						const parsedData = JSON.parse(savedData);
+						const pdfId = pdfDocument.fingerprints[0];
+						const existingPdfIndex = parsedData.findIndex(item => item.id === pdfId);
+						
+						if (existingPdfIndex >= 0) {
+							parsedData[existingPdfIndex].highlights = updatedHighlights;
+							localStorage.setItem(HIGHLIGHTS_STORAGE_KEY, JSON.stringify(parsedData));
+						}
+					} catch (e) {
+						console.error("Error updating highlights in localStorage:", e);
+					}
+				}
+			}
+
+			return updatedHighlights;
+		});
 	};
 
 	const highlightTransform = (
@@ -111,8 +253,7 @@ const PDFHighlighter = () => {
 		screenshot,
 		isScrolledTo,
 	) => {
-		const isTextHighlight = !highlight.content?.image;
-
+		const isTextHighlight = !highlight.content?.image;        
 		const component = isTextHighlight ? (
 			<Highlight
 				isScrolledTo={isScrolledTo}
@@ -150,40 +291,26 @@ const PDFHighlighter = () => {
 		content,
 		hideTipAndSelection,
 		transformSelection,
-	) => (
-		<Tip
-			onOpen={transformSelection}
-			onConfirm={(comment) => {
-				addHighlight({ content, position, comment });
-				hideTipAndSelection();
-			}}
-		/>
-	);
+	) => {
+        return (
+            <Tip
+                onOpen={transformSelection}
+                onConfirm={(comment) => {
+                    addHighlight({ content, position, comment });
+                    hideTipAndSelection();
+                }}
+            />
+        );
+	};
 
 	return (
-		<div className="App" style={{ display: "flex", height: "100vh" }}>
-			<Sidebar highlights={highlights} resetHighlights={resetHighlights} />
-			<div
-				style={{
-					height: "100vh",
-					width: "75vw",
-					position: "relative",
-				}}
-			>
-				{/* File Upload and Controls */}
-				<div
-					style={{
-						position: "absolute",
-						top: "10px",
-						right: "10px",
-						zIndex: 1000,
-						display: "flex",
-						gap: "10px",
-						alignItems: "center",
-					}}
-				>
-				</div>
-
+		<div className="App" style={{ display: "flex", height: "calc(100vh - 36px)" }}>
+			<Sidebar 
+				highlights={highlights} 
+				resetHighlights={resetHighlights} 
+				onDeleteHighlight={deleteHighlight}
+			/>
+			<div className="w-full relative">
 				{pdfError ? (
 					<div
 						style={{
@@ -251,12 +378,12 @@ const PDFHighlighter = () => {
 							);
 						}}
 					>
-						{(pdfDocument) => {
-							console.log("PDF Document loaded:", pdfDocument);
+						{(pdfDoc) => {
+							setPdfDocument(pdfDoc);
 							return (
 								<PdfHighlighter
 									ref={pdfHighlighterRef}
-									pdfDocument={pdfDocument}
+									pdfDocument={pdfDoc}
 									enableAreaSelection={(event) => event.altKey}
 									onScrollChange={resetHash}
 									onSelectionFinished={onSelectionFinished}

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { SIDEBAR_WIDTH } from "./utils/constants";
 
 import Header from "./components/Header";
 import PDFHighlighter from "./components/PDFHighlighter";
@@ -15,18 +14,10 @@ function App() {
 				currentView={currentView}
 				setCurrentView={setCurrentView}
 			/>
-			<div
-				className="container mr-0 p-2"
-				style={{
-					marginLeft: SIDEBAR_WIDTH,
-					width: `calc(100% - ${SIDEBAR_WIDTH}px)`,
-				}}
-			>
-				{currentView === "viewer" && <PDFHighlighter />}
-				{currentView === "notes" && (
-					<NotesList setCurrentView={setCurrentView} />
-				)}
-			</div>
+			{currentView === "viewer" && <PDFHighlighter />}
+			{currentView === "notes" && (
+				<NotesList setCurrentView={setCurrentView} />
+			)}
 		</div>
 	);
 }
