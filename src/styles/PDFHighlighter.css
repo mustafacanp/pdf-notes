@@ -44,7 +44,7 @@ body {
 }
 
 .sidebar__highlight:first-child {
-	border-top: 1px solid rgb(119, 119, 119)
+	border-top: 1px solid rgb(119, 119, 119);
 }
 
 .sidebar__highlight:hover {
@@ -68,6 +68,7 @@ blockquote:after {
 }
 
 .Highlight__popup {
+	width: 300px;
 	padding: 10px;
 	border-radius: 5px;
 	text-align: center;
@@ -75,13 +76,13 @@ blockquote:after {
 }
 
 ._card_1um8o_10 {
-    background-color: #3d464d;
-    border: none;
+	background-color: #3d464d;
+	border: none;
 }
 
 ._card_1um8o_10 textarea {
 	width: 100%;
-    border: 1px solid #ccc;
+	border: 1px solid #ccc;
 	border-radius: 5px;
 	padding: 5px;
 	resize: none;

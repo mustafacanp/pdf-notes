@@ -48,9 +48,10 @@ const NotesList = ({ setCurrentView }) => {
 	};
 
 	// Check if there are any highlights with comments
-	const hasAnyComments = notesData?.some(file => 
-		file.highlights?.some(highlight => highlight.comment?.text)
-	) || false;
+	const hasAnyComments =
+		notesData?.some((file) =>
+			file.highlights?.some((highlight) => highlight.comment?.text),
+		) || false;
 
 	if (!notesData || notesData.length <= 0 || !hasAnyComments) {
 		return (
@@ -69,8 +70,10 @@ const NotesList = ({ setCurrentView }) => {
 			const updatedData = prev.map((file) => {
 				if (file.id !== fileId) return file;
 
-				const updatedHighlights = file.highlights.filter(highlight => highlight.id !== highlightId);
-				
+				const updatedHighlights = file.highlights.filter(
+					(highlight) => highlight.id !== highlightId,
+				);
+
 				return { ...file, highlights: updatedHighlights };
 			});
 
@@ -85,11 +88,15 @@ const NotesList = ({ setCurrentView }) => {
 			<div className="p-6 space-y-8">
 				{notesData.map((file) => {
 					// Only show highlights that have comments
-					const highlightsWithComments = file.highlights?.filter(highlight => highlight.comment?.text) || [];
-					
+					const highlightsWithComments =
+						file.highlights?.filter((highlight) => highlight.comment?.text) ||
+						[];
+
 					if (highlightsWithComments.length === 0) return null;
 
-					const groupedHighlights = groupHighlightsByPage(highlightsWithComments);
+					const groupedHighlights = groupHighlightsByPage(
+						highlightsWithComments,
+					);
 
 					return (
 						<div
@@ -102,49 +109,55 @@ const NotesList = ({ setCurrentView }) => {
 							</h2>
 
 							{Object.entries(groupedHighlights)
-								.sort(([a], [b]) => parseInt(a) - parseInt(b))
+								.sort(([a], [b]) => Number.parseInt(a) - Number.parseInt(b))
 								.map(([pageNumber, highlights]) => (
-								<div key={pageNumber} className="mb-5">
-									{/* Page Number */}
-									<div className="inline-flex items-center bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
-										Page {pageNumber}
-									</div>
+									<div key={pageNumber} className="mb-5">
+										{/* Page Number */}
+										<div className="inline-flex items-center bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
+											Page {pageNumber}
+										</div>
 
-									{/* Highlights List */}
-									<ul className="space-y-3 text-sm">
-										{highlights.map((highlight) => (
-											<li
-												key={highlight.id}
-												className="bg-gray-50 hover:bg-gray-100 p-4 rounded-md border border-gray-200"
-											>
-												<div className="space-y-2">
-													{/* Highlighted Text */}
-													<div className="bg-yellow-100 p-2 rounded text-gray-800 italic">
-														"{highlight.content.text}"
-													</div>
-													
-													{/* Comment */}
-													<div className="flex justify-between items-start">
-														<div className="flex items-center space-x-2">
-															{highlight.comment.emoji && (
-																<span className="text-lg">{highlight.comment.emoji}</span>
-															)}
-															<span className="text-gray-700 break-words">{highlight.comment.text}</span>
+										{/* Highlights List */}
+										<ul className="space-y-3 text-sm">
+											{highlights.map((highlight) => (
+												<li
+													key={highlight.id}
+													className="bg-gray-50 hover:bg-gray-100 p-4 rounded-md border border-gray-200"
+												>
+													<div className="space-y-2">
+														{/* Highlighted Text */}
+														<div className="bg-yellow-100 p-2 rounded text-gray-800 italic">
+															"{highlight.content.text}"
 														</div>
-														<button
-															type="button"
-															onClick={() => handleRemoveHighlight(file.id, highlight.id)}
-															className="cursor-pointer text-red-500 hover:text-red-700 ml-4 flex-shrink-0"
-														>
-															<X size={20} />
-														</button>
+
+														{/* Comment */}
+														<div className="flex justify-between items-start">
+															<div className="flex items-center space-x-2">
+																{highlight.comment.emoji && (
+																	<span className="text-lg">
+																		{highlight.comment.emoji}
+																	</span>
+																)}
+																<span className="text-gray-700 break-words">
+																	{highlight.comment.text}
+																</span>
+															</div>
+															<button
+																type="button"
+																onClick={() =>
+																	handleRemoveHighlight(file.id, highlight.id)
+																}
+																className="cursor-pointer text-red-500 hover:text-red-700 ml-4 flex-shrink-0"
+															>
+																<X size={20} />
+															</button>
+														</div>
 													</div>
-												</div>
-											</li>
-										))}
-									</ul>
-								</div>
-							))}
+												</li>
+											))}
+										</ul>
+									</div>
+								))}
 						</div>
 					);
 				})}

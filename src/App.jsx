@@ -10,14 +10,9 @@ function App() {
 	const [currentView, setCurrentView] = useState("viewer");
 	return (
 		<div className="min-h-screen bg-gray-100">
-			<Header
-				currentView={currentView}
-				setCurrentView={setCurrentView}
-			/>
+			<Header currentView={currentView} setCurrentView={setCurrentView} />
 			{currentView === "viewer" && <PDFHighlighter />}
-			{currentView === "notes" && (
-				<NotesList setCurrentView={setCurrentView} />
-			)}
+			{currentView === "notes" && <NotesList setCurrentView={setCurrentView} />}
 		</div>
 	);
 }
